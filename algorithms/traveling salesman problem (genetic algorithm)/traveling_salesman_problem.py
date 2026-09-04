@@ -18,10 +18,11 @@ def generate_city_list():
     random.shuffle(city_list)
     return city_list
 
-def initial_population(pop_size):
+def generate_population(pop_size):
     population = []
     for i in range(pop_size):
         population.append(generate_city_list())
+    return population
 
 def euclidean_distance(city1, city2):
     distance = ((city1[0] - city2[0])**2 + (city1[1] - city2[1])**2)**0.5
@@ -33,25 +34,38 @@ def evaluate_solution(city_list, city_dict):
         distance += euclidean_distance(city_dict[city_list[i]], city_dict[city_list[i+1]])
     return distance
 
-def genetic_algorithm(pop_size,generations, mutation_rate, city_dict):
+def genetic_algorithm(pop_size, generations, mutation_rate, city_dict):
 
     global_best_distance = float("inf")
     global_best_chromosome = None
 
-    population = initial_population(pop_size)
+    population = generate_population(pop_size)
 
     for gen in range(generations):
 
+        for city_list in population:
+            eval_distance = evaluate_solution(city_list, city_dict)
+            if eval_distance < global_best_distance:
+                global_best_distance = eval_distance
+                global_best_chromosome = city_list
+                print(f"Gen{gen + 1:}\nNew optimal solution at distance: {eval_distance}")
+
+        population = generate_population(pop_size)
+
+    return global_best_chromosome, global_best_distance
 
 
 def main():
-    city_list = generate_city_list()
-    print(city_list)
-    city_dict = import_city_dict()
-    print(city_dict)
-    solution_distance = evaluate_solution(city_list, city_dict)
+    # city_list = generate_city_list()
+    # print(city_list)
+    # print(city_dict)
+    # solution_distance = evaluate_solution(city_list, city_dict)
+    # print(solution_distance)
 
-    print(solution_distance)
+    city_dict = import_city_dict()
+    solution, distance = genetic_algorithm(256, 256, 0, city_dict)
+
+    print(f"-----------\nBest solution found had a distance of:\n{distance}\nCity list:\n{solution}")
 
 
 
