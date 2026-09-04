@@ -24,6 +24,25 @@ def generate_population(pop_size):
         population.append(generate_city_list())
     return population
 
+def mutate_inversion(city_list, mutation_rate):
+    if random.random() < mutation_rate:
+        return city_list
+
+    mutated = city_list.copy()
+
+    i,j = random.sample(range(len(mutated)), 2)
+
+    start = min(i, j)
+    end = max(i, j)
+
+    if end - start < 2:
+        start -= random.randint(2, 26)
+
+    # Slicing and reversing a piece happens here
+    mutated[start : end + 1] = reversed(mutated[start : end + 1])
+
+    return mutated
+
 def euclidean_distance(city1, city2):
     distance = ((city1[0] - city2[0])**2 + (city1[1] - city2[1])**2)**0.5
     return distance
@@ -49,8 +68,9 @@ def genetic_algorithm(pop_size, generations, mutation_rate, city_dict):
                 global_best_distance = eval_distance
                 global_best_chromosome = city_list
                 print(f"Gen{gen + 1:}\nNew optimal solution at distance: {eval_distance}")
-
-        population = generate_population(pop_size)
+        for i in range(len(population)):
+            city_list = population.pop(0)
+            population.append(mutate_inversion(city_list, mutation_rate))
 
     return global_best_chromosome, global_best_distance
 
