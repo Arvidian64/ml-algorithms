@@ -25,7 +25,7 @@ def generate_population(pop_size):
     return population
 
 def mutate_inversion(city_list, mutation_rate):
-    if random.random() < mutation_rate:
+    if random.random() > mutation_rate:
         return city_list
 
     mutated = city_list.copy()
@@ -83,7 +83,7 @@ def main():
     # print(solution_distance)
 
     city_dict = import_city_dict()
-    solution, distance = genetic_algorithm(256, 256, 0, city_dict)
+    solution, distance = genetic_algorithm(256, 256, 0.1, city_dict)
 
     print(f"-----------\nBest solution found had a distance of:\n{distance}\nCity list:\n{solution}")
 
