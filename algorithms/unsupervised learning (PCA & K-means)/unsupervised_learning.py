@@ -108,5 +108,38 @@ for _ in range(max_rotations):
 # Extract eigenvalues from diagonal
 eigenvalues = [A[i][i] for i in range(n_features)]
 
+#Sortera komponenter utefter eigenvärden
+indices = list(range(n_features))
+indices.sort(key=lambda idx: eigenvalues[idx], reverse=True)
+
+coeff_matrix = [
+    [V[i][component_idx] for component_idx in indices]
+    for i in range(n_features)
+]
+
+#Projicera data för att beräkna nya "features"
+# Z = X_std * CoeffMatrix
+new_features = []
+for row in X_std:
+    transformed_row = [
+        sum(row[j] * coeff_matrix[j][pc_idx] for j in range(n_features))
+        for pc_idx in range(n_features)
+    ]
+    new_features.append(transformed_row)
+
+
+def save_to_file(coeff_matrix, new_features):
+    with open("pca_coefficients.txt", "w") as f:
+        for row in coeff_matrix:
+            f.write(" ".join(f"{val:12.6f}" for val in row) + "\n")
+
+    # Save transformed scores for all objects
+    with open("wine_pca_transformed.txt", "w") as f:
+        for row in new_features:
+            f.write(" ".join(f"{val:12.6f}" for val in row) + "\n")
+
+    print("PCA completed successfully.")
+    print(f"Saved 'pca_coefficients.txt' ({n_features}x{n_features})")
+    print(f"Saved 'wine_pca_transformed.txt' ({n_samples}x{n_features})")
 
 
