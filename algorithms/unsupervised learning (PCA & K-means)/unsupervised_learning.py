@@ -50,5 +50,63 @@ for i in range(n_features):
         cov_matrix[j][i] = cov_val
 
 
+# Eigenvärdes-algoritm
+V = [[1.0 if i == j else 0.0 for j in range(n_features)] for i in range(n_features)]
+A = [row[:] for row in cov_matrix]
+
+max_rotations = 200
+for _ in range(max_rotations):
+    # Find largest off-diagonal element
+    max_val = 0.0
+    p, q = 0, 1
+    for i in range(n_features):
+        for j in range(i + 1, n_features):
+            if abs(A[i][j]) > max_val:
+                max_val = abs(A[i][j])
+                p, q = i, j
+
+    if max_val < 1e-11:
+        break
+
+    # Calculate rotation angle
+    diff = A[q][q] - A[p][p]
+    if abs(A[p][q]) < 1e-15:
+        t = 0.0
+    else:
+        theta = diff / (2.0 * A[p][q])
+        t = math.copysign(1.0 / (abs(theta) + math.sqrt(theta * theta + 1.0)), theta)
+
+    c = 1.0 / math.sqrt(t * t + 1.0)
+    s = t * c
+
+    # Apply Givens rotation to A: A_new = G^T * A * G
+    App = A[p][p]
+    Aqq = A[q][q]
+    Apq = A[p][q]
+
+    A[p][p] = c * c * App - 2.0 * s * c * Apq + s * s * Aqq
+    A[q][q] = s * s * App + 2.0 * s * c * Apq + c * c * Aqq
+    A[p][q] = 0.0
+    A[q][p] = 0.0
+
+    for i in range(n_features):
+        if i != p and i != q:
+            a_ip = A[i][p]
+            a_iq = A[i][q]
+            A[i][p] = c * a_ip - s * a_iq
+            A[p][i] = A[i][p]
+            A[i][q] = s * a_ip + c * a_iq
+            A[q][i] = A[i][q]
+
+    # Accumulate transformations into eigenvector matrix V
+    for i in range(n_features):
+        v_ip = V[i][p]
+        v_iq = V[i][q]
+        V[i][p] = c * v_ip - s * v_iq
+        V[i][q] = s * v_ip + c * v_iq
+
+# Extract eigenvalues from diagonal
+eigenvalues = [A[i][i] for i in range(n_features)]
+
 
 
