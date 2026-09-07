@@ -1,4 +1,5 @@
 import random
+import matplotlib.pyplot as plt
 
 def import_city_dict():
     city_dict = {}
@@ -79,7 +80,7 @@ def genetic_algorithm(pop_size, generations, mutation_rate, city_dict):
     global_best_distance = float("inf")
     global_best_chromosome = None
 
-    #logs - maybe ? for 5. Illustrate how performance of the population evolves with generations, with a figure in assigment ?
+    #logs - maybe ?for 5. Illustrate how performance of the population evolves with generations, with a figure in assigment ?
     best_fitness_scores = []
     mean_fitness_scores = []
 
@@ -89,7 +90,7 @@ def genetic_algorithm(pop_size, generations, mutation_rate, city_dict):
         new_population = []
 
         fitness_scores = [evaluate_solution(chromosome, city_dict) for chromosome in population]
-        #print('FITNESS', fitness_scores)
+       # print('FITNESS', sorted(fitness_scores))
         #for logging
         best_fitness_scores.append(min(fitness_scores))
         mean_fitness_scores.append(sum(fitness_scores) / len(fitness_scores))
@@ -97,8 +98,8 @@ def genetic_algorithm(pop_size, generations, mutation_rate, city_dict):
         
         best_chromosome_index = fitness_scores.index(min(fitness_scores))
         best_chromosome_distance = fitness_scores[best_chromosome_index]
-        print('BEST CHROMOSEOME INDEX', best_chromosome_index)
-        print('BEST DISTANCE', best_chromosome_distance)
+       # print('BEST CHROMOSEOME INDEX', best_chromosome_index)
+       # print('BEST DISTANCE', best_chromosome_distance)
         
         while len(new_population) < len(population):
 
@@ -114,11 +115,11 @@ def genetic_algorithm(pop_size, generations, mutation_rate, city_dict):
                 new_population.append(child_two)
 
         population = new_population
-        print(len(population))
-    #best_solution = population[fitness_scores.index(min(fitness_scores))]
-    #print(best_solution)
+        #print(population)
+    best_solution = population[fitness_scores.index(min(fitness_scores))]
+    print(best_solution)
+    
         
-
     for city_list in population:
         eval_distance = evaluate_solution(city_list, city_dict)
         if eval_distance < global_best_distance:
@@ -129,8 +130,22 @@ def genetic_algorithm(pop_size, generations, mutation_rate, city_dict):
         city_list = population.pop(0)
         population.append(mutate_inversion(city_list, mutation_rate))
 
+    plots(best_fitness_scores, mean_fitness_scores)
+
     return global_best_chromosome, global_best_distance
     #return best_solution
+
+def plots(best_fitness_scores, mean_fitness_scores):
+    plt.figure(figsize=(15, 10))
+    plt.plot(best_fitness_scores, label="BEST DISTANCE")
+    plt.plot(mean_fitness_scores, label="MEAN DISTANCE")
+    plt.xlabel("GENERATION")
+    plt.ylabel("DISTANCE")
+    plt.legend()
+    plt.grid(True)
+    plt.axhline(y=8000, color="red")
+    plt.savefig("TSP_distance_plot.png")
+    plt.show()
 
 def main():
     # city_list = generate_city_list()
@@ -146,6 +161,6 @@ def main():
 
     print(f"-----------\nBest solution found had a distance of:\n{distance}\nCity list:\n{solution}")
     #print(f"-----------\nBest solution found had a distance of:\n{best_solution}")
-
+    
 if __name__ == "__main__":
     main()
