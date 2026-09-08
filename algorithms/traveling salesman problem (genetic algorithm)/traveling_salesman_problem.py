@@ -54,37 +54,44 @@ def evaluate_solution(city_list, city_dict):
         distance += euclidean_distance(city_dict[city_list[i]], city_dict[city_list[i+1]])
     return distance
 
-#Runs a tournament for each parent, chooses individual with lowest distance-index
-def tournament_selection(population, fitness_scores, tournament_size=5):
-    tournament_winners = []
-    for _ in range(2):
-        participants = random.sample(range(len(population)), tournament_size)
-        best = min(participants, key=lambda index: fitness_scores[index])
-        tournament_winners.append((population[best]))
-        
-    return tournament_winners[0], tournament_winners[1]
+def genetic_algorithm(pop_size, generations, mutation_rate, city_dict):
 
 #Cuts each parent in half, each child gets a half of each parent
 def crossover(parent_one, parent_two):
     cut_parent_in_half = int(len(parent_one) /2)
 
-    child_one = parent_one[:cut_parent_in_half]
-    child_two = parent_two[:cut_parent_in_half]
+    population = generate_population(pop_size)
 
     child_one.extend([city for city in parent_two if city not in child_one])
     child_two.extend([city for city in parent_one if city not in child_two])
 
-    return child_one, child_two
+        for city_list in population:
+            eval_distance = evaluate_solution(city_list, city_dict)
+            if eval_distance < global_best_distance:
+                global_best_distance = eval_distance
+                global_best_chromosome = city_list
+                print(f"Gen{gen + 1:}\nNew optimal solution at distance: {eval_distance}")
+        for i in range(len(population)):
+            city_list = population.pop(0)
+            population.append(mutate_inversion(city_list, mutation_rate))
+
+    return global_best_chromosome, global_best_distance
 
 def genetic_algorithm(pop_size, generations, mutation_rate, city_dict):
     global_best_distance = float("inf")
     global_best_chromosome = None
 
-    #logs - maybe ?for 5. Illustrate how performance of the population evolves with generations, with a figure in assigment ?
-    best_fitness_scores = []
-    mean_fitness_scores = []
+def main():
+    # city_list = generate_city_list()
+    # print(city_list)
+    # print(city_dict)
+    # solution_distance = evaluate_solution(city_list, city_dict)
+    # print(solution_distance)
 
-    population = generate_population(pop_size)
+    city_dict = import_city_dict()
+    solution, distance = genetic_algorithm(256, 256, 0.1, city_dict)
+
+    print(f"-----------\nBest solution found had a distance of:\n{distance}\nCity list:\n{solution}")
 
     for gen in range(generations):
         new_population = []
