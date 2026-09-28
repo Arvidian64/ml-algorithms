@@ -84,11 +84,96 @@ def visualize_data_objects(data, coeff_matrix, eigenvalues_sorted, eigenvectors)
     plt.show()
 
 
-data = np.loadtxt("wine.txt")
+def kmeans_pca_clustering(data, coeff_matrix, n_components=3, k=3, max_iters=300, random_state=42):
 
-coeff_matrix, eigenvalues_sorted, eigenvectors = calculate_principal_component_coefficient_matrix(data)
+    np.random.seed(random_state)
 
-visualize_data_objects(data, coeff_matrix, eigenvalues_sorted, eigenvectors)
+    features = data[:, -13:]
+    features_std = (features - np.mean(features, axis=0)) / np.std(features, axis=0, ddof=1)
+
+    W = coeff_matrix[:, :n_components]
+    Z = np.dot(features_std, W)
+
+    n_samples = Z.shape[0]
+    initial_idx = np.random.choice(n_samples, size=k, replace=False)
+    centroids = Z[initial_idx].copy()
+
+    # K-means Lloyd's algorithm
+    cluster_labels = np.zeros(n_samples, dtype=int)
+    for i in range(max_iters):
+        # Euclidean distances
+        distances = np.linalg.norm(Z[:, np.newaxis, :] - centroids[np.newaxis, :, :], axis=2)
+        new_labels = np.argmin(distances, axis=1)
+
+        # Check convergence
+        if np.array_equal(cluster_labels, new_labels):
+            break
+        cluster_labels = new_labels
+
+        # Recompute centroids
+        for i in range(k):
+            assigned_points = Z[cluster_labels == i]
+            if len(assigned_points) > 0:
+                centroids[i] = np.mean(assigned_points, axis=0)
+
+    unique_clusters, counts = np.unique(cluster_labels, return_counts=True)
+    cluster_counts = {int(cluster): int(count) for cluster, count in zip(unique_clusters, counts)}
+
+    plt.figure(figsize=(9, 6))
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c']
+
+    x_data = Z[:, 0]
+    y_data = Z[:, 1] if n_components > 1 else np.zeros_like(x_data)
+
+    c_x = centroids[:, 0]
+    c_y = centroids[:, 1] if n_components > 1 else np.zeros_like(c_x)
+
+    for i in range(k):
+        mask = (cluster_labels == i)
+        plt.scatter(
+            x_data[mask],
+            y_data[mask],
+            color=colors[i % len(colors)],
+            alpha=0.75,
+            edgecolors='none',
+            s=45,
+            label=f'Cluster {i} (n = {cluster_counts.get(i, 0)})'
+        )
+
+    #Plot Centroids
+    plt.scatter(
+        c_x,
+        c_y,
+        color="black",
+        marker='X',
+        s=180,
+        linewidth=1.5,
+        edgecolors='white',
+        label='Centroids'
+    )
+
+    plt.title(f"K-Means (k={k}) on Top {n_components} Principal Components", fontsize=13, fontweight='bold')
+    plt.xlabel("Principal Component 1", fontsize=11)
+    plt.ylabel("Principal Component 2" if n_components > 1 else "Fixed (1D)", fontsize=11)
+    plt.grid(True, linestyle=':', alpha=0.6)
+    plt.legend(frameon=True)
+    plt.tight_layout()
+    plt.show()
+
+    return cluster_labels, centroids, cluster_counts
+
+
+def main():
+    data = np.loadtxt("wine.txt")
+
+    coeff_matrix, eigenvalues_sorted, eigenvectors = calculate_principal_component_coefficient_matrix(data)
+
+    # visualize_data_objects(data, coeff_matrix, eigenvalues_sorted, eigenvectors)
+
+    kmeans_pca_clustering(data, coeff_matrix, n_components=2, k=3, max_iters=300)
+
+if __name__ == "__main__":
+    main()
 
 
 
