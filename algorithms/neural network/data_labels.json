@@ -1,4 +1,5 @@
 [
+[
     "Lever position (lp) [ ]",
     "Ship speed (v) [knots]",
     "Gas Turbine (GT) shaft torque (GTT) [kN m]",
@@ -15,4 +16,8 @@
     "GT exhaust gas pressure (Pexh) [bar]",
     "Turbine Injecton Control (TIC) [%]",
     "Fuel flow (mf) [kg/s]"
+],
+["GT Compressor decay state coefficient",
+"GT Turbine decay state coefficient"
+]
 ]
