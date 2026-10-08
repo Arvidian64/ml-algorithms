@@ -89,8 +89,8 @@ y_pred = model.predict(X_test_scaled)
 mse_compressor = mean_squared_error(y_test[:, 0], y_pred[:, 0])
 mse_turbine = mean_squared_error(y_test[:, 1], y_pred[:, 1])
 
-print(f"Compressor Decay MSE: {mse_compressor:.6f}")
-print(f"Turbine Decay MSE:    {mse_turbine:.6f}")
+print(f"Compressor Decay MSE: {mse_compressor}")
+print(f"Turbine Decay MSE:    {mse_turbine}")
 
 
 
