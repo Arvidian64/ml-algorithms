@@ -8,3 +8,9 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+
+#Python cache
+**/__pycache__/
+
+#VS Code
+**/.vscode/
