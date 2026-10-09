@@ -12,7 +12,6 @@ with open("data_labels.json", "r") as read_file:
 features = lists[0]
 decay_coefficients = lists[1]
 
-
 data = np.loadtxt("maintenance.dat")
 
 # Separera egenskaper (X) från mål-koefficienter (Y)
@@ -40,9 +39,30 @@ model = keras.Sequential(
     ]
 )
 
+class CustomSGD(keras.optimizers.Optimizer):
+    def __init__(self, learning_rate=0.01,  weight_decay=0.0, momentum=0.0, nesterov=False):
+        super().__init__(weight_decay)
+        self.learning_rate = learning_rate
+        self.momentum = momentum
+
+    def build(self, variables):
+        super().build(variables)
+        self._momentums = [
+            self.add_variable_from_reference(var, "momentum") for var in variables
+        ]
+
+    def update_step(self, gradient, variable, learning_rate):
+        m = self._momentums[self._get_variable_index(variable)]
+        # Uppdaterar momentum
+        self.assign_add(m, m * self.momentum - learning_rate * gradient)
+        # Uppdaterar variabeln
+        self.assign_add(variable, m)
+
+optimizer = CustomSGD(learning_rate=0.01, weight_decay=0.0, momentum=0.0, nesterov=False)
+
 # kompilera modellen
 model.compile(
-    optimizer="adam",
+    optimizer=optimizer,
     loss="mse",
     metrics=["mse"]
 )
