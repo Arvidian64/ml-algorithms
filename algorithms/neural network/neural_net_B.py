@@ -13,7 +13,7 @@ def load_data():
 
 def prep_data(rng, X_features, y_coefficients):
     n = len(X_features)       
-    perm = rng.permutation(n) 
+    perm = np.random.permutation(n) 
     X_features = X_features[perm] #ADDED so features and coefficients are randomly shuffled in the same order to "randomly be divided into training set..."
     y_coefficients = y_coefficients[perm]
     #splits data into 50% training, 25% validation, 25% testing
@@ -50,8 +50,8 @@ def prep_data(rng, X_features, y_coefficients):
 
 def model_architecture():
     input_layer = Input(shape=(16, ))
-    dense = Dense(256, activation='swish')(input_layer)
-    dense_1 = Dense(256, activation='swish')(dense)
+    dense = Dense(256, activation='relu')(input_layer)
+    dense_1 = Dense(256, activation='relu')(dense)
     dense_2 = Dense(2, activation='linear')(dense_1)
     model = Model(inputs=input_layer, outputs=dense_2)
     return model
@@ -79,7 +79,7 @@ def forward(weights, X):
 def mean_squared_error(output, target_values):
     return np.mean((output - target_values) ** 2)
 
-def backpropagation(weights, X_train, y_train, learning_rate=0.001):
+def backpropagation(weights, X_train, y_train, learning_rate):
     (w1, b1), (w2, b2), (w3, b3) = weights 
     predictions, (inputs, hidden_1, hidden_2) = forward(weights, X_train)
 
@@ -109,9 +109,9 @@ def backpropagation(weights, X_train, y_train, learning_rate=0.001):
 
 
 def run_model(rng, X_train, y_train, X_valid, y_valid, X_test, y_test, y_mean, y_std, weights):
-    epochs = 1000
+    epochs = 5000
     batch_size = 16
-    learning_rate = 0.0045
+    learning_rate = 0.004
     epoch_training_loss = [] 
     epoch_validation_loss = [] #for a figure?
 
@@ -121,7 +121,7 @@ def run_model(rng, X_train, y_train, X_valid, y_valid, X_test, y_test, y_mean, y
         print('Epoch:', epoch)
 
         ##shuffle X and make batches from X and y
-        permutation = list(rng.permutation(len(X_train)))
+        permutation = list(np.random.permutation(len(X_train)))
         shuffled_X_train = X_train[permutation, :]
         shuffled_y_train = y_train[permutation, :]
     
