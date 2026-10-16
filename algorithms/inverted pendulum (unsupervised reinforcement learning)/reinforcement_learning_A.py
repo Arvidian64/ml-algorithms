@@ -1,5 +1,6 @@
 import math
 import random
+import matplotlib.pyplot as plt
 
 def simulate_pendulum(force, x, x_dot, theta, theta_dot):
     # Räknar ut nästa stadie baserat på kraft och nuvarande stadie
@@ -51,7 +52,10 @@ def env_step(state, action_idx):
         reward = -100.0
         is_terminal = True
     else:
-        reward = 1.0
+        theta_ratio = abs(next_theta) / twelve_degrees_radians
+        x_ratio = abs(next_x) / max_x
+
+        reward = 1.0 - (0.8 * theta_ratio) - (0.2 * x_ratio)
         is_terminal = False
 
     return next_state, reward, is_terminal
@@ -173,17 +177,73 @@ def q_training(max_episodes, max_steps=3000,
 
         # Avbryt träningen tidigt om agenten har klarat 60 sekunder 10 gånger i rad
         if consecutive_successes >= 10:
-            print(f"\nTräning klar vid episod {episode + 1}! Agenten behärskar nu pendeln.")
+            episodes_used = episode + 1
+            print(f"\nTräning klar vid episod {episodes_used}! Agenten behärskar nu pendeln.")
+            return q_table, episodes_used
+
+    return q_table, max_episodes
+
+
+def evaluate_and_plot(q_table, episodes, max_steps=3000):
+    # Kör en simulering på 60 sekunder (3000 steg) med de färdigtränad Q-tabell
+    # (epsilon = 0.0) och ritar grafer.
+    state = (0.0, 0.0, 0.0, 0.0)
+
+    time_steps = []
+    x_history = []
+    theta_deg_history = []
+
+    for step in range(max_steps):
+        # Spara tid (i sekunder), vagnens position (m) och vinkel (omvandlat till grader)
+        time_steps.append(step * 0.02)
+        x_history.append(state[0])
+        theta_deg_history.append(math.degrees(state[2]))
+
+        # Välj alltid bästa handlingen (epsilon = 0.0, ingen slump)
+        state_idx = discretize_state(state)
+        action_idx = 0 if q_table[state_idx][0] > q_table[state_idx][1] else 1
+
+        next_state, _, is_terminal = env_step(state, action_idx)
+        state = next_state
+
+        if is_terminal:
+            print(f"Utvärdering misslyckades vid {step * 0.02:.2f} sekunder!")
             break
+
+    # Skapa figur med två grafer (Cart Position och Pole Angle)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
+
+    # Graf 1: Vagnens position (x)
+    ax1.plot(time_steps, x_history, color='blue', label='Cart Position (x)')
+    ax1.axhline(2.4, color='red', linestyle='--', label='Bounds (±2.4 m)')
+    ax1.axhline(-2.4, color='red', linestyle='--')
+    ax1.set_ylabel('Position x (m)')
+    ax1.set_title('Pendulum Control Simulation Using Learned Strategy (60 Seconds)')
+    ax1.legend(loc='upper right')
+    ax1.grid(True)
+
+    # Graf 2: Pendelns vinkel (theta)
+    ax2.plot(time_steps, theta_deg_history, color='green', label='Pole Angle (θ)')
+    ax2.axhline(12.0, color='red', linestyle='--', label='Bounds (±12°)')
+    ax2.axhline(-12.0, color='red', linestyle='--')
+    ax2.set_xlabel('Time (seconds)')
+    ax2.set_ylabel('Angle θ (degrees)')
+    ax2.legend(loc='upper right')
+    ax2.grid(True)
+
+    plt.tight_layout()
+    plt.savefig("PendulumAgents/Pendulum_after_"+str(episodes)+"episodes.png")
+    plt.show()
 
 
 def main():
 
-    twelve_degrees_radians = math.radians(12)
-    max_x = 2.4
+    q_table, episodes = q_training(max_episodes=10000, max_steps=3000,
+               alpha=0.15, gamma=0.984,
+               epsilon=1.0, epsilon_min=0.001, epsilon_decay=0.994,
+               x=0.0,x_dot=0.0, theta=0.0, theta_dot=0.0)
 
-    q_training(max_episodes=10000, max_steps=3000,
-               alpha=0.1, gamma=0.99, )
+    evaluate_and_plot(q_table, episodes, max_steps=3000)
 
 if __name__ == "__main__":
     main()
